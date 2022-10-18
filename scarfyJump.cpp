@@ -69,7 +69,7 @@ SetTargetFPS(60);
 
 
 
-	if(IsKeyDown(KEY_D))
+	if(IsKeyDown(KEY_D)&& !jumped)
 {
 	scarfyAnim.pos.x += speed*deltaTime;
 	scarfyAnim.rec.width = scarfy.width/6;
@@ -89,6 +89,7 @@ SetTargetFPS(60);
 if(IsKeyReleased(KEY_D)&& !jumped)
 {scarfyAnim.frame = 0;
 scarfyAnim.rec.x = scarfyAnim.frame* scarfyAnim.rec.width;}
+
 if(IsKeyDown(KEY_A)&& !jumped)
 {
 	scarfyAnim.pos.x -= speed*deltaTime;
