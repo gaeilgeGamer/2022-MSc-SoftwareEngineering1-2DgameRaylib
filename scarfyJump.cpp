@@ -1,4 +1,14 @@
 #include "raylib.h"
+
+struct Anim
+{
+	Rectangle rec; 
+	Vector2 pos;
+	int frame; 
+	float updateTime; 
+	float runningTime;  
+};
+
 int main(){
  const int windowWidth{700};
  const int windowHeight{450};
@@ -8,98 +18,101 @@ InitWindow(windowWidth,windowHeight,"My Window");
 //const int height{80};
 const int gravity{1000};
 
+Texture2D obstacle = LoadTexture("resources/Raylib_logo.png");
 Texture2D scarfy = LoadTexture("resources/scarfy.png");
-Texture2D background = LoadTexture("resources/cyberpunk_street_background.png");
-Texture2D midground = LoadTexture("resources/cyberpunk_street_midground.png");
-Texture2D foreground = LoadTexture("resources/cyberpunk_street_foreground.png");
+Anim scarfyAnim;
+scarfyAnim.rec.width = scarfy.width/6; 
+scarfyAnim.rec.height = scarfy.height;
+scarfyAnim.rec.x = 0;
+scarfyAnim.rec.y = 0;
+scarfyAnim.pos.x = windowWidth/2 - scarfyAnim.rec.width/2;
+scarfyAnim.pos.y = windowHeight - scarfyAnim.rec.height;
+scarfyAnim.frame = 0;
+scarfyAnim.updateTime = 1.0/12.0;
+scarfyAnim.runningTime = 0.0;
 
-Rectangle scarfyRec;
-scarfyRec.width = scarfy.width/6;
-scarfyRec.height = scarfy.height;
-scarfyRec.x = 0;
-scarfyRec.y = 0; 
-Vector2 scarfyPos;
-scarfyPos.x = windowWidth/2 - scarfyRec.width/2;
-scarfyPos.y = windowHeight - scarfyRec.height;
+Rectangle obRec;
+obRec.width = obstacle.width;
+obRec.height = obstacle.height; 
+obRec.x = 0;
+obRec.y = 0;
+Vector2 obPos; 
+obPos.x = windowWidth- obRec.width;
+obPos.y = windowHeight - obRec.height;
 
-int frame{};
-const float updateTime{1.0/12};
-float runningTime{};
-
-    float scrollingBack = 0.0f;
-    float scrollingMid = 0.0f;
-    float scrollingFore = 0.0f;
+int obVel{-100};
 
 //int posY{windowHeight-height};
 int velocity{0};
 const int jumpHeight{500};
 bool jumped{false};
 int speed{200};
+bool collision{};
 SetTargetFPS(60);  
 	while(!WindowShouldClose()){
 	const float deltaTime{GetFrameTime()};
+	Rectangle obstacleRec{
+		obPos.x,
+		obPos.y,
+		obRec.height,
+		obRec.width,
+	};
+	Rectangle scarfyRec{
+	scarfyAnim.pos.x,
+	scarfyAnim.pos.y,
+	scarfyAnim.rec.height,
+	scarfyAnim.rec.width	
+	};
+	if(CheckCollisionRecs(scarfyRec,obstacleRec)){
+		collision = true;
+	}
 
-	    scrollingBack -= 0.1f;
-        scrollingMid -= 0.5f;
-        scrollingFore -= 1.0f;
 
-		if (scrollingBack <= -background.width*2)
-			{ 
-			scrollingBack = 0;
-			}
-        if (scrollingMid <= -midground.width*2)
-			{ 
-			scrollingMid = 0;
-			}
-        if (scrollingFore <= -foreground.width*2)
-			{ 
-			scrollingFore = 0;
-			}
 
 	if(IsKeyDown(KEY_D))
 {
-	scarfyPos.x += speed*deltaTime;
-	scarfyRec.width = scarfy.width/6;
+	scarfyAnim.pos.x += speed*deltaTime;
+	scarfyAnim.rec.width = scarfy.width/6;
 
-	runningTime += deltaTime; 
-	if(runningTime >= updateTime)
+	scarfyAnim.runningTime += deltaTime; 
+	if(scarfyAnim.runningTime >= scarfyAnim.updateTime)
 	{
-	runningTime = 0.0;
-	scarfyRec.x = frame* scarfyRec.width;
-	frame++;
-	if (frame>5){
-	frame = 0;
+	scarfyAnim.runningTime = 0.0;
+	scarfyAnim.rec.x = scarfyAnim.frame* scarfyAnim.rec.width;
+	scarfyAnim.frame++;
+	if (scarfyAnim.frame>5){
+	scarfyAnim.frame = 0;
 	}
 
 	}
 }
 if(IsKeyReleased(KEY_D)&& !jumped)
-{frame = 0;
-scarfyRec.x = frame* scarfyRec.width;}
+{scarfyAnim.frame = 0;
+scarfyAnim.rec.x = scarfyAnim.frame* scarfyAnim.rec.width;}
 if(IsKeyDown(KEY_A)&& !jumped)
 {
-	scarfyPos.x -= speed*deltaTime;
-	scarfyRec.width = -scarfy.width/6;
+	scarfyAnim.pos.x -= speed*deltaTime;
+	scarfyAnim.rec.width = -scarfy.width/6;
 
-	runningTime += deltaTime; 
-	if(runningTime >= updateTime)
+	scarfyAnim.runningTime += deltaTime; 
+	if(scarfyAnim.runningTime >= scarfyAnim.updateTime)
 	{
-	runningTime = 0.0;
-	scarfyRec.x = frame* scarfyRec.width;
-	frame++;
-	if (frame>5){
-	frame = 0;
+	scarfyAnim.runningTime = 0.0;
+	scarfyAnim.rec.x = scarfyAnim.frame* scarfyAnim.rec.width;
+	scarfyAnim.frame++;
+	if (scarfyAnim.frame>5){
+	scarfyAnim.frame = 0;
 	}
 
 	}
 }
 if(IsKeyReleased(KEY_A)&& !jumped)
-{frame = 0;
-scarfyRec.x = frame* scarfyRec.width;}
+{scarfyAnim.frame = 0;
+scarfyAnim.rec.x = scarfyAnim.frame* scarfyAnim.rec.width;}
 BeginDrawing();
 
 //if (posY >= windowHeight - height){
-if (scarfyPos.y >= windowHeight - scarfy.height){
+if (scarfyAnim.pos.y >= windowHeight - scarfy.height){
 
 	velocity=0;
 	jumped = false; 
@@ -114,26 +127,20 @@ if(IsKeyPressed(KEY_SPACE) && !jumped)
 }
 
 //posY += velocity;
-scarfyPos.y += velocity * deltaTime; 
+scarfyAnim.pos.y += velocity * deltaTime; 
+obPos.x += obVel * deltaTime; 
 ClearBackground(WHITE); 
-            
-			DrawTextureEx(background, (Vector2){ scrollingBack, 20 }, 0.0f, 2.0f, WHITE);
-            DrawTextureEx(background, (Vector2){ background.width*2 + scrollingBack, 20 }, 0.0f, 2.0f, WHITE);
+	if (collision){
 
-            // Draw midground image twice
-            DrawTextureEx(midground, (Vector2){ scrollingMid, 20 }, 0.0f, 2.0f, WHITE);
-            DrawTextureEx(midground, (Vector2){ midground.width*2 + scrollingMid, 20 }, 0.0f, 2.0f, WHITE);
-
-            // Draw foreground image twice
-            DrawTextureEx(foreground, (Vector2){ scrollingFore, 70 }, 0.0f, 2.0f, WHITE);
-            DrawTextureEx(foreground, (Vector2){ foreground.width*2 + scrollingFore, 70 }, 0.0f, 2.0f, WHITE); 
+	}
+	else{
 //DrawRectangle(windowWidth/2,posY,width,height,GREEN);
-DrawTextureRec(scarfy,scarfyRec,scarfyPos,WHITE);
+DrawTextureRec(scarfy,scarfyAnim.rec,scarfyAnim.pos,WHITE);
+DrawTextureRec(obstacle,obRec,obPos,WHITE);
+	}
 EndDrawing();
 }
 UnloadTexture(scarfy);
-    UnloadTexture(background);  // Unload background texture
-    UnloadTexture(midground);   // Unload midground texture
-    UnloadTexture(foreground); 
+UnloadTexture(obstacle);
 CloseWindow();
 }
